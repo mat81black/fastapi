@@ -26,6 +26,14 @@ def test_swagger_ui():
     assert response.status_code == 200, response.text
     assert response.headers["content-type"] == "text/html; charset=utf-8"
     assert "swagger-ui-dist" in response.text
+    assert '<script src="/docs/swagger-initializer.js">' in response.text
+
+
+def test_swagger_ui_init_script():
+    response = client.get("/docs/swagger-initializer.js")
+    assert response.status_code == 200, response.text
+    assert response.headers["content-type"] == "text/javascript; charset=utf-8"
+    assert "SwaggerUIBundle(" in response.text
     assert (
         "oauth2RedirectUrl: window.location.origin + '/docs/oauth2-redirect'"
         in response.text
@@ -36,7 +44,21 @@ def test_swagger_ui_oauth2_redirect():
     response = client.get("/docs/oauth2-redirect")
     assert response.status_code == 200, response.text
     assert response.headers["content-type"] == "text/html; charset=utf-8"
+    assert '<script src="/docs/oauth2-redirect.js">' in response.text
+
+
+def test_swagger_ui_oauth2_redirect_script():
+    response = client.get("/docs/oauth2-redirect.js")
+    assert response.status_code == 200, response.text
+    assert response.headers["content-type"] == "text/javascript; charset=utf-8"
     assert "window.opener.swaggerUIRedirectOauth2" in response.text
+
+
+def test_redoc_css():
+    response = client.get("/redoc/redoc.css")
+    assert response.status_code == 200, response.text
+    assert response.headers["content-type"] == "text/css; charset=utf-8"
+    assert "margin:0" in response.text
 
 
 def test_redoc():

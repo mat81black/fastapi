@@ -18,25 +18,29 @@ The first step is to disable the automatic docs, as by default, those use the de
 
 To disable them, set their URLs to `None` when creating your `FastAPI` app:
 
-{* ../../docs_src/custom_docs_ui/tutorial001_py310.py hl[8] *}
+{* ../../docs_src/custom_docs_ui/tutorial001_py310.py hl[11] *}
 
 ### Include the custom docs { #include-the-custom-docs }
 
 Now you can create the *path operations* for the custom docs.
 
-You can reuse FastAPI's internal functions to create the HTML pages for the docs, and pass them the needed arguments:
+Swagger UI needs a small JavaScript file to initialize it, so you also need a *path operation* that serves that script, generated with `get_swagger_ui_init_js()`. The same applies to the OAuth2 redirect page, which needs a *path operation* that serves its script, generated with `get_swagger_ui_oauth2_redirect_js()`.
+
+You can reuse FastAPI's internal functions to create the HTML pages and the JavaScript files for the docs, and pass them the needed arguments:
 
 * `openapi_url`: the URL where the HTML page for the docs can get the OpenAPI schema for your API. You can use here the attribute `app.openapi_url`.
 * `title`: the title of your API.
-* `oauth2_redirect_url`: you can use `app.swagger_ui_oauth2_redirect_url` here to use the default.
+* `swagger_ui_init_script_url`: the URL where Swagger UI can load the JavaScript that initializes it. This is the *path operation* that serves `get_swagger_ui_init_js()`, right below.
 * `swagger_js_url`: the URL where the HTML for your Swagger UI docs can get the **JavaScript** file. This is the custom CDN URL.
 * `swagger_css_url`: the URL where the HTML for your Swagger UI docs can get the **CSS** file. This is the custom CDN URL.
 
 And similarly for ReDoc...
 
-{* ../../docs_src/custom_docs_ui/tutorial001_py310.py hl[2:6,11:19,22:24,27:33] *}
+{* ../../docs_src/custom_docs_ui/tutorial001_py310.py hl[2:8,14:20,23:30,33:36,39:43,46:52] *}
 
 /// tip
+
+The *path operations* for `swagger_ui_init_script` and `oauth2_redirect_script` serve the JavaScript files that Swagger UI and its OAuth2 redirect page need.
 
 The *path operation* for `swagger_ui_redirect` is a helper for when you use OAuth2.
 
@@ -50,7 +54,7 @@ Swagger UI will handle it behind the scenes for you, but it needs this "redirect
 
 Now, to be able to test that everything works, create a *path operation*:
 
-{* ../../docs_src/custom_docs_ui/tutorial001_py310.py hl[36:38] *}
+{* ../../docs_src/custom_docs_ui/tutorial001_py310.py hl[55:57] *}
 
 ### Test it { #test-it }
 
@@ -118,7 +122,7 @@ After that, your file structure could look like:
 * Import `StaticFiles`.
 * "Mount" a `StaticFiles()` instance in a specific path.
 
-{* ../../docs_src/custom_docs_ui/tutorial002_py310.py hl[7,11] *}
+{* ../../docs_src/custom_docs_ui/tutorial002_py310.py hl[9,14] *}
 
 ### Test the static files { #test-the-static-files }
 
@@ -144,25 +148,29 @@ The same as when using a custom CDN, the first step is to disable the automatic 
 
 To disable them, set their URLs to `None` when creating your `FastAPI` app:
 
-{* ../../docs_src/custom_docs_ui/tutorial002_py310.py hl[9] *}
+{* ../../docs_src/custom_docs_ui/tutorial002_py310.py hl[12] *}
 
 ### Include the custom docs for static files { #include-the-custom-docs-for-static-files }
 
 And the same way as with a custom CDN, now you can create the *path operations* for the custom docs.
 
-Again, you can reuse FastAPI's internal functions to create the HTML pages for the docs, and pass them the needed arguments:
+Again, Swagger UI needs a small JavaScript file to initialize it, so you also need a *path operation* that serves that script, generated with `get_swagger_ui_init_js()`. The same applies to the OAuth2 redirect page, which needs a *path operation* that serves its script, generated with `get_swagger_ui_oauth2_redirect_js()`.
+
+Again, you can reuse FastAPI's internal functions to create the HTML pages and the JavaScript files for the docs, and pass them the needed arguments:
 
 * `openapi_url`: the URL where the HTML page for the docs can get the OpenAPI schema for your API. You can use here the attribute `app.openapi_url`.
 * `title`: the title of your API.
-* `oauth2_redirect_url`: you can use `app.swagger_ui_oauth2_redirect_url` here to use the default.
+* `swagger_ui_init_script_url`: the URL where Swagger UI can load the JavaScript that initializes it. This is the *path operation* that serves `get_swagger_ui_init_js()`, right below.
 * `swagger_js_url`: the URL where the HTML for your Swagger UI docs can get the **JavaScript** file. **This is the one that your own app is now serving**.
 * `swagger_css_url`: the URL where the HTML for your Swagger UI docs can get the **CSS** file. **This is the one that your own app is now serving**.
 
 And similarly for ReDoc...
 
-{* ../../docs_src/custom_docs_ui/tutorial002_py310.py hl[2:6,14:22,25:27,30:36] *}
+{* ../../docs_src/custom_docs_ui/tutorial002_py310.py hl[2:8,17:23,26:33,36:39,42:46,49:55] *}
 
 /// tip
+
+The *path operations* for `swagger_ui_init_script` and `oauth2_redirect_script` serve the JavaScript files that Swagger UI and its OAuth2 redirect page need.
 
 The *path operation* for `swagger_ui_redirect` is a helper for when you use OAuth2.
 
@@ -176,7 +184,7 @@ Swagger UI will handle it behind the scenes for you, but it needs this "redirect
 
 Now, to be able to test that everything works, create a *path operation*:
 
-{* ../../docs_src/custom_docs_ui/tutorial002_py310.py hl[39:41] *}
+{* ../../docs_src/custom_docs_ui/tutorial002_py310.py hl[58:60] *}
 
 ### Test Static Files UI { #test-static-files-ui }
 

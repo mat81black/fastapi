@@ -21,8 +21,19 @@ def test_swagger_ui():
     assert "oauth2RedirectUrl" not in response.text
 
 
+def test_swagger_ui_init_script_no_oauth2_redirect():
+    response = client.get("/docs/swagger-initializer.js")
+    assert response.status_code == 200, response.text
+    assert "oauth2RedirectUrl" not in response.text
+
+
 def test_swagger_ui_no_oauth2_redirect():
     response = client.get("/docs/oauth2-redirect")
+    assert response.status_code == 404, response.text
+
+
+def test_swagger_ui_no_oauth2_redirect_script():
+    response = client.get("/docs/oauth2-redirect.js")
     assert response.status_code == 404, response.text
 
 

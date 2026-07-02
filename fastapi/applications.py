@@ -15,9 +15,12 @@ from fastapi.exceptions import RequestValidationError, WebSocketRequestValidatio
 from fastapi.logger import logger
 from fastapi.middleware.asyncexitstack import AsyncExitStackMiddleware
 from fastapi.openapi.docs import (
+    get_redoc_css,
     get_redoc_html,
     get_swagger_ui_html,
+    get_swagger_ui_init_js,
     get_swagger_ui_oauth2_redirect_html,
+    get_swagger_ui_oauth2_redirect_js,
 )
 from fastapi.openapi.utils import get_openapi
 from fastapi.params import Depends
@@ -1119,27 +1122,65 @@ class FastAPI(Starlette):
 
             self.add_route(self.openapi_url, openapi, include_in_schema=False)
         if self.openapi_url and self.docs_url:
+            swagger_ui_init_script_url = (
+                f"{self.docs_url.rstrip('/')}/swagger-initializer.js"
+            )
 
-            async def swagger_ui_html(req: Request) -> HTMLResponse:
+            async def swagger_ui_init_script(req: Request) -> Response:
                 root_path = req.scope.get("root_path", "").rstrip("/")
                 openapi_url = root_path + self.openapi_url
                 oauth2_redirect_url = self.swagger_ui_oauth2_redirect_url
                 if oauth2_redirect_url:
                     oauth2_redirect_url = root_path + oauth2_redirect_url
-                return get_swagger_ui_html(
+                js = get_swagger_ui_init_js(
                     openapi_url=openapi_url,
-                    title=f"{self.title} - Swagger UI",
                     oauth2_redirect_url=oauth2_redirect_url,
                     init_oauth=self.swagger_ui_init_oauth,
                     swagger_ui_parameters=self.swagger_ui_parameters,
+                )
+                return Response(content=js, media_type="text/javascript")
+
+            self.add_route(
+                swagger_ui_init_script_url,
+                swagger_ui_init_script,
+                include_in_schema=False,
+            )
+
+            async def swagger_ui_html(req: Request) -> HTMLResponse:
+                root_path = req.scope.get("root_path", "").rstrip("/")
+                init_script_url = root_path + swagger_ui_init_script_url
+                return get_swagger_ui_html(
+                    title=f"{self.title} - Swagger UI",
+                    swagger_ui_init_script_url=init_script_url,
                 )
 
             self.add_route(self.docs_url, swagger_ui_html, include_in_schema=False)
 
             if self.swagger_ui_oauth2_redirect_url:
+                oauth2_redirect_script_url = (
+                    f"{self.swagger_ui_oauth2_redirect_url.rstrip('/')}.js"
+                )
+
+                oauth2_redirect_js = get_swagger_ui_oauth2_redirect_js()
+                oauth2_redirect_js_response = Response(
+                    content=oauth2_redirect_js, media_type="text/javascript"
+                )
+
+                async def oauth2_redirect_script(req: Request) -> Response:
+                    return oauth2_redirect_js_response
+
+                self.add_route(
+                    oauth2_redirect_script_url,
+                    oauth2_redirect_script,
+                    include_in_schema=False,
+                )
 
                 async def swagger_ui_redirect(req: Request) -> HTMLResponse:
-                    return get_swagger_ui_oauth2_redirect_html()
+                    root_path = req.scope.get("root_path", "").rstrip("/")
+                    redirect_script_url = root_path + oauth2_redirect_script_url
+                    return get_swagger_ui_oauth2_redirect_html(
+                        oauth2_redirect_script_url=redirect_script_url,
+                    )
 
                 self.add_route(
                     self.swagger_ui_oauth2_redirect_url,
@@ -1147,12 +1188,26 @@ class FastAPI(Starlette):
                     include_in_schema=False,
                 )
         if self.openapi_url and self.redoc_url:
+            redoc_css_url = f"{self.redoc_url.rstrip('/')}/redoc.css"
+
+            redoc_css_content = get_redoc_css()
+            redoc_css_response = Response(
+                content=redoc_css_content, media_type="text/css"
+            )
+
+            async def redoc_css(req: Request) -> Response:
+                return redoc_css_response
+
+            self.add_route(redoc_css_url, redoc_css, include_in_schema=False)
 
             async def redoc_html(req: Request) -> HTMLResponse:
                 root_path = req.scope.get("root_path", "").rstrip("/")
                 openapi_url = root_path + self.openapi_url
+                css_url = root_path + redoc_css_url
                 return get_redoc_html(
-                    openapi_url=openapi_url, title=f"{self.title} - ReDoc"
+                    openapi_url=openapi_url,
+                    title=f"{self.title} - ReDoc",
+                    redoc_css_url=css_url,
                 )
 
             self.add_route(self.redoc_url, redoc_html, include_in_schema=False)
